@@ -1,0 +1,125 @@
+{
+    tileset_file: "tileset.png",
+    tile_data: [
+	[ 
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    },
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    },
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    },
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    }
+	],
+	[ 
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    },
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    },
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    },
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    }
+	],
+	[ 
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    },
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    },
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    },
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    }
+	],
+	[ 
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    },
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    },
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    },
+	    {
+		tileset_coordinate: [ 3, 4 ],
+		entrances: [ true, false, true, true ],
+		is_occupiable: true,
+		is_safe_spot: false,
+		is_exit: false
+	    }
+	]
+    ]
+}
