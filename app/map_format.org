@@ -1,0 +1,17 @@
+* Tile attributes
+  - tileset (string)
+    - filename
+  - coordinate on tileset (int, int)
+    - row, column
+    - (0,0) is top left
+  - Available entrances on tile (bool, bool, bool, bool)
+    - N, E, S, W
+  - Whether can yarn can occupy tile (bool)
+  - Safe spot? (bool)
+  - Is exit (bool)
+* Game classes
+** Board
+   Tracks the positions of all tiles and the dynamic positioning of yarn.
+** Yarn Ball
+   - coordinate stack (current location is at top of stack)
+   - length remaining
