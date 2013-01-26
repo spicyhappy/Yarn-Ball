@@ -1,5 +1,16 @@
+//                      
+//     ______       o
+//   / 0      \_/     o
+//   \ _______/ \  o  
+
 import java.util.*;
 import org.json.*;
+import ddf.minim.*;
+
+// Mininum variables
+Minim minim;
+AudioPlayer backgroundMusic;
+AudioPlayer soundEffect;
 
 class Coordinate {
   int x = 0;
@@ -129,7 +140,7 @@ class MapDecoder {
     ArrayList<ArrayList<Tile>> data = new ArrayList<ArrayList<Tile>>();
     for (int row = 0; row < 10; row++) {
       data.add(new ArrayList<Tile>());
-      for (int column = 0; column < ; column++) {
+      for (int column = 0; column < 10; column++) {
         boolean[] tile_data = { true, true, true, true, true, true, true };
         Tile tile = new Tile(0, 0, tile_data);
         data.get(row).add(tile);
@@ -228,6 +239,13 @@ TileMap map = decoder.read("");
 void setup() {
   size(240, 160);
   yarn = new Yarn(new Coordinate(5,5));
+  
+  // Audio files setup
+  minim = new Minim(this);
+  backgroundMusic = minim.loadFile("backgroundMusic.wav");
+  backgroundMusic.play();
+  backgroundMusic.loop();
+  soundEffect = minim.loadFile("effect.wav");
 }
 
 void draw() {
@@ -238,5 +256,17 @@ void draw() {
 }
 
 void keyPressed() {
-  yarn.tryMove(keyCode); 
+  yarn.tryMove(keyCode);
+  
+  // Play music effect when something is pressed
+  soundEffect.rewind();
+  soundEffect.play();
+}
+
+void stop()
+{
+backgroundMusic.close();
+soundEffect.close();
+minim.stop();
+super.stop();
 }
