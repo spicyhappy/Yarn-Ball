@@ -13,8 +13,8 @@ class Coordinate {
   public int get_tile_x() { return x; }
   public int get_tile_y() { return y; }
   
-  public int get_global_x() { return x * TILE_WIDTH; }
-  public int get_global_y() { return y * TILE_HEIGHT; }
+  public int get_global_x() { return get_tile_x() * TILE_WIDTH; }
+  public int get_global_y() { return get_tile_y() * TILE_HEIGHT; }
   
   public boolean equals(Object obj) {
     if (obj == null) return false;
@@ -78,7 +78,6 @@ class TileSet {
   
   public PImage get_tile(int row, int column) {
     // TODO: Replace placeholder tile image.
-    //
     //       Cut pixel data out of tile sheet file and
     //       use them to make the appropriate PImage.
     PImage img = createImage(tile_width, tile_height, RGB);
@@ -105,7 +104,7 @@ class TileMap {
        for (int column = 0; column < grid.data.get(row).size(); column++) {
          Tile tile = grid.data.get(row).get(column);
          PImage img = tiles.get_tile(tile.tile_set_row, tile.tile_set_column);
-         image(img, row * TILE_WIDTH, column * TILE_WIDTH);
+         image(img, row * TILE_HEIGHT, column * TILE_WIDTH);
        }
      }
   }
@@ -115,7 +114,11 @@ class MapDecoder {
   JSONObject json_obj = null;
   
   public TileMap read(String source) {
-    //json_obj = new JSONObject(source);
+    try {
+      json_obj = new JSONObject(source);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     return new TileMap(get_tile_set(), get_grid());
   }
   
@@ -125,16 +128,73 @@ class MapDecoder {
   }
   
   protected Grid<Tile> get_grid() {
-    // TODO: replace placeholder
     ArrayList<ArrayList<Tile>> data = new ArrayList<ArrayList<Tile>>();
-    for (int row = 0; row < 10; row++) {
-      data.add(new ArrayList<Tile>());
-      for (int column = 0; column < ; column++) {
-        boolean[] tile_data = { true, true, true, true, true, true, true };
-        Tile tile = new Tile(0, 0, tile_data);
-        data.get(row).add(tile);
+    
+    Object obj;
+    try {
+      obj = json_obj.get("tile_data");
+      if (obj.getClass() == JSONArray.class) {
+        JSONArray rows = (JSONArray) obj;
+        
+        for (int r = 0; r < rows.length(); r++) {
+          obj = rows.get(r);
+          
+          data.add(new ArrayList<Tile>());
+          
+          if (obj.getClass() == JSONArray.class) {
+            JSONArray cells = (JSONArray) obj;
+            for (int c = 0; c < cells.length(); c++) {
+              obj = cells.get(c);
+              if (obj.getClass() == JSONObject.class) {
+                JSONObject cell = (JSONObject) obj;
+                
+                int x=0, y=0;
+                boolean n=true, e=true, s=true, w=true,
+                        occupiable=true, safe_spot=true, exit=true;
+
+                obj = cell.get("tileset_coordinate");
+                if (obj.getClass() == JSONArray.class) {
+                  JSONArray coordinate = (JSONArray) obj;
+                  
+                  x = ((Number) coordinate.get(0)).intValue();
+                  y = ((Number) coordinate.get(1)).intValue();
+                } else {
+                  println("Expected JSONArray for tileset_coordinate!"); 
+                }
+                
+                obj = cell.get("entrances");
+                if (obj.getClass() == JSONArray.class) {
+                  JSONArray entrances = (JSONArray) obj;
+                  
+                  n = ((Boolean) entrances.get(0)).booleanValue();
+                  e = ((Boolean) entrances.get(1)).booleanValue();
+                  s = ((Boolean) entrances.get(2)).booleanValue();
+                  w = ((Boolean) entrances.get(3)).booleanValue();
+                } else {
+                  println("Expected JSONArray for entrances!"); 
+                }
+                
+                occupiable = ((Boolean) cell.get("is_occupiable")).booleanValue();
+                safe_spot = ((Boolean) cell.get("is_safe_spot")).booleanValue();
+                exit = ((Boolean) cell.get("is_exit")).booleanValue();
+                
+                boolean options[] = { occupiable, safe_spot, exit, n, e, s, w };
+                data.get(data.size()-1).add(new Tile(x, y, options));
+              } else {
+                println("Expected JSONObject for cell data!");
+              } 
+            }
+          } else {
+            println("Expected JSONArray of cells in the row!"); 
+          }
+        }
+      } else {
+        println("Expected JSONArray of the rows!");
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+    
     return new Grid<Tile>(data);
   }
 }
@@ -222,12 +282,26 @@ int TILE_WIDTH = 16;
 int TILE_HEIGHT = 16;
 Yarn yarn = null;
 
-MapDecoder decoder = new MapDecoder();
-TileMap map = decoder.read("");
+MapDecoder decoder;
+String json_map;
+TileMap map;
+
+String read_file(String filename) {
+  String lines[] = loadStrings(filename);
+  StringBuilder sb = new StringBuilder();
+  for (int i = 0; i < lines.length; i++) {
+    sb.append(lines[i]);
+  }
+  return sb.toString();
+}
 
 void setup() {
   size(240, 160);
   yarn = new Yarn(new Coordinate(5,5));
+  
+  decoder = new MapDecoder();
+  json_map = read_file("maps/actual_map.json");
+  map = decoder.read(json_map);
 }
 
 void draw() {
