@@ -1,5 +1,16 @@
+//                      
+//     ______       o
+//   / 0      \_/     o
+//   \ _______/ \  o  
+
 import java.util.*;
 import org.json.*;
+import ddf.minim.*;
+
+// Mininum variables
+Minim minim;
+AudioPlayer backgroundMusic;
+AudioPlayer soundEffect;
 
 class Coordinate {
   int x = 0;
@@ -302,6 +313,13 @@ void setup() {
   decoder = new MapDecoder();
   json_map = read_file("maps/actual_map.json");
   map = decoder.read(json_map);
+
+  // Audio files setup
+  minim = new Minim(this);
+  backgroundMusic = minim.loadFile("backgroundMusic.wav");
+  backgroundMusic.play();
+  backgroundMusic.loop();
+  soundEffect = minim.loadFile("effect.wav");
 }
 
 void draw() {
@@ -312,5 +330,17 @@ void draw() {
 }
 
 void keyPressed() {
-  yarn.tryMove(keyCode); 
+  yarn.tryMove(keyCode);
+  
+  // Play music effect when something is pressed
+  soundEffect.rewind();
+  soundEffect.play();
+}
+
+void stop()
+{
+  backgroundMusic.close();
+  soundEffect.close();
+  minim.stop();
+  super.stop();
 }
