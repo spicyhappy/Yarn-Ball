@@ -280,14 +280,14 @@ class Yarn {
   
   protected void drawBall() {
 //    fill(255);
-    int x = get_position().get_global_x();
-    int y = get_position().get_global_y();
+    int x = get_position().get_global_x() + TILE_WIDTH/2;
+    int y = get_position().get_global_y() + TILE_HEIGHT/2;
 //    ellipse(x, y, 10, 10);  
       
     PImage yarnBall;
     // Not animated yet - ball.png has animated sprites
     yarnBall = loadImage("ball_0000.png");
-    image(yarnBall, x-8, y-8);
+    image(yarnBall, x-TILE_WIDTH/2, y-TILE_HEIGHT/2);
   }
   
   protected void drawPath() {
@@ -301,10 +301,10 @@ class Yarn {
       
       stroke(255,186,0);
       strokeWeight(2);
-      line(prev.get_global_x(),
-           prev.get_global_y(),
-           curr.get_global_x(),
-           curr.get_global_y());
+      line(prev.get_global_x() + TILE_WIDTH/2,
+           prev.get_global_y() + TILE_HEIGHT/2,
+           curr.get_global_x() + TILE_WIDTH/2,
+           curr.get_global_y() + TILE_HEIGHT/2);
       
       prev = curr;
     }
