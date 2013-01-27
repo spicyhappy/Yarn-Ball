@@ -452,7 +452,7 @@ void setup() {
   backgroundMusic.loop();
   menuEffect = minim.loadFile("menu.wav");
   
-  yarn = new Yarn(new Coordinate(5,5));
+  yarn = new Yarn(new Coordinate(0,0));
   
   decoder = new MapDecoder();
   json_map = read_file("maps/actual_map.json");
