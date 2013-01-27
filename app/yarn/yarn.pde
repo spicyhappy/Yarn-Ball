@@ -16,14 +16,15 @@ AudioPlayer menuEffect;
 PImage startScreen;
 PImage creditScreen;
 PImage winScreen;
+PImage darkMask;
 int gameLevel = 0;
 
 // Screen dimensions for testing (will always be 15x10 once real levels are in)
 int sWidth = 3;
 int sHeight = 3;
 
-Boolean _keysLocked = false;
 
+Boolean _keysLocked = false;
 
 class Coordinate {
   int x = 0;
@@ -76,10 +77,6 @@ class Tile {
     east_passage = options[4];
     south_passage = options[5];
     west_passage = options[6];
-    
-    // println("is_occupiable: "+is_occupiable);
-    // println(tile_set_row+","+tile_set_column);
-    // println(north_passage+","+east_passage+","+south_passage+","+west_passage);
   }
 }
 
@@ -240,8 +237,8 @@ class Yarn {
   }
   
   public void draw() {
-    drawBall();
     drawPath();
+    drawBall();
   }
   
   protected void drawBall() {
@@ -254,16 +251,22 @@ class Yarn {
       // Not animated yet - ball.png has animated sprites
       yarnBall = loadImage("ball_0000.png");
       image(yarnBall, x-8, y-8);
+      
+       image(darkMask, x-240, y-160);
+      
   }
   
   protected void drawPath() {
+    
+    
     if (positions.size() <= 1) return;
     
     Coordinate prev = positions.get(0);
     for (int i = 1; i < positions.size(); i++) {
       Coordinate curr = positions.get(i);
       
-      stroke(255);
+      stroke(255,186,0);
+      strokeWeight(2);
       line(prev.get_global_x(),
            prev.get_global_y(),
            curr.get_global_x(),
@@ -320,10 +323,13 @@ class Yarn {
     if (valid_move(get_position(), next_position)) {
       // do move
       if (positions.size() >= 2 && next_position.equals(positions.get(positions.size() - 2))) {
-        positions.remove(positions.size() - 1); 
-      } else {
+        positions.remove(positions.size() - 1);
+        remaining_length++; 
+      } else if (remaining_length > 0) {
         positions.add(next_position);
+        remaining_length--;
       }
+      
       // check for safe/end spots
       checkForSpots();
     }
@@ -405,6 +411,7 @@ void setup() {
   startScreen = loadImage("screen_start.png");
   winScreen = loadImage("screen_win.png");
   creditScreen = loadImage("screen_credits.png");
+  darkMask = loadImage("mask.png");
   
   // Audio files setup
   minim = new Minim(this);
@@ -413,7 +420,7 @@ void setup() {
   backgroundMusic.loop();
   menuEffect = minim.loadFile("menu.wav");
   
-  yarn = new Yarn(new Coordinate(0,0));
+  yarn = new Yarn(new Coordinate(5,5));
   
   decoder = new MapDecoder();
   json_map = read_file("maps/actual_map.json");
@@ -431,6 +438,7 @@ void draw() {
   if (gameLevel == 1) {
     map.draw();
     yarn.draw();
+    
   }
   
   if (gameLevel == 2) {
