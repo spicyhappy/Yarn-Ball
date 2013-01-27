@@ -25,8 +25,8 @@ int screenWidth = 240;
 int screenHeight = 160;
 
 // Screen dimensions for testing (will always be 15x10 once real levels are in)
-int sWidth = 3;
-int sHeight = 3;
+int sWidth = 15;
+int sHeight = 10;
 
 
 Boolean _keysLocked = false;
@@ -156,7 +156,7 @@ class TileMap {
        for (int column = 0; column < grid.data.get(row).size(); column++) {
          Tile tile = grid.data.get(row).get(column);
          PImage img = tiles.get_tile(tile.tile_set_row, tile.tile_set_column);
-         image(img, row * TILE_HEIGHT, column * TILE_WIDTH);
+         image(img, column * TILE_WIDTH, row * TILE_HEIGHT);
        }
      }
   }
@@ -195,6 +195,7 @@ class MapDecoder {
         JSONArray rows = (JSONArray) obj;
         
         for (int r = 0; r < rows.length(); r++) {
+          println("Reading row " + r);
           obj = rows.get(r);
           
           data.add(new ArrayList<Tile>());
@@ -354,7 +355,7 @@ class Yarn {
     int tileX = to.get_tile_x();
     int tileY = to.get_tile_y();
     
-    Tile toTile = map.grid.data.get(tileX).get(tileY);
+    Tile toTile = map.grid.data.get(tileY).get(tileX);
     
     rtn = toTile.is_occupiable;
     
@@ -426,6 +427,9 @@ class Yarn {
   protected void doEndLevel()
   {
     println("IT'S THE END");
+    
+    gameLevel = 2;
+    
     // allow exit regardless of length
     doSpagettiSuck();
   }
@@ -482,10 +486,10 @@ void setup() {
   backgroundMusic.loop();
   menuEffect = minim.loadFile("menu.wav");
   
-  yarn = new Yarn(new Coordinate(0,5));
+  yarn = new Yarn(new Coordinate(0,0));
   
   decoder = new MapDecoder();
-  json_map = read_file("maps/LevelA.json");
+  json_map = read_file("maps/testThis3.json");
   map = decoder.read(json_map);
 
 }
