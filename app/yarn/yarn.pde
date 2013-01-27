@@ -10,11 +10,12 @@ import ddf.minim.*;
 // Audio variables
 Minim minim;
 AudioPlayer backgroundMusic;
-AudioPlayer soundEffect;
+AudioPlayer menuEffect;
 
 // Level variables
 PImage startScreen;
 PImage creditScreen;
+PImage winScreen;
 int gameLevel = 0;
 
 class Coordinate {
@@ -319,6 +320,7 @@ String read_file(String filename) {
 void setup() {
   size(240, 160);
   startScreen = loadImage("screen_start.png");
+  winScreen = loadImage("screen_win.png");
   creditScreen = loadImage("screen_credits.png");
   
   // Audio files setup
@@ -326,7 +328,7 @@ void setup() {
   backgroundMusic = minim.loadFile("backgroundMusic.wav");
   backgroundMusic.play();
   backgroundMusic.loop();
-  soundEffect = minim.loadFile("effect.wav");
+  menuEffect = minim.loadFile("menu.wav");
   
   yarn = new Yarn(new Coordinate(5,5));
   
@@ -349,6 +351,10 @@ void draw() {
   }
   
   if (gameLevel == 2) {
+    image(winScreen, 0, 0);
+  }
+  
+  if (gameLevel == 3) {
     image(creditScreen, 0, 0);
   }
   
@@ -363,21 +369,26 @@ void keyPressed() {
   
   else if (gameLevel == 1) {
     yarn.tryMove(keyCode);
-    soundEffect.play();
-    soundEffect.rewind();
+    menuEffect.play();
+    menuEffect.rewind();
+  }
+  
+  // Win screen
+  else if (gameLevel == 2) {
+    gameLevel = 3;
   }
   
   // Credits screen
   else if (gameLevel == 3) {
     gameLevel = 0;
   }
-  
+ 
 }
 
 void stop()
 {
   backgroundMusic.close();
-  soundEffect.close();
+  menuEffect.close();
   minim.stop();
   super.stop();
 }
