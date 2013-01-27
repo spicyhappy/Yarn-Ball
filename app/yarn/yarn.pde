@@ -18,6 +18,7 @@ PImage creditScreen;
 PImage winScreen;
 PImage darkMask;
 int gameLevel = 0;
+boolean lightingEffectsOn = true;
 
 // Screen dimensions for testing (will always be 15x10 once real levels are in)
 int sWidth = 3;
@@ -284,7 +285,9 @@ class Yarn {
       yarnBall = loadImage("ball_0000.png");
       image(yarnBall, x-8, y-8);
       
-       image(darkMask, x-240, y-160);
+      if (lightingEffectsOn) {
+        image(darkMask, x-240, y-160);
+      }
       
   }
   
@@ -455,7 +458,7 @@ void setup() {
   yarn = new Yarn(new Coordinate(0,0));
   
   decoder = new MapDecoder();
-  json_map = read_file("maps/actual_map.json");
+  json_map = read_file("maps/LevelA.json");
   map = decoder.read(json_map);
 
 }
