@@ -68,7 +68,7 @@ class Tile {
   boolean south_passage;
   boolean west_passage;
   
-  public Tile(int tile_set_row, int tile_set_column, boolean[] options) {
+  public Tile(int tile_set_column, int tile_set_row, boolean[] options) {
     if (options.length != 7)
       throw new IllegalArgumentException("Tile must have 7 bools!");
     
@@ -96,27 +96,53 @@ class Grid<T extends Tile> {
 // TODO: pre-load PImages into an array; return
 //       references to them as needed.
 class TileSet {
-  String tile_sheet_file = null;
+  PImage tile_sheet = null;
+  PImage tiles[] = null;  // assumes sprite sheet has only one row of tiles; may need to fix later!
   int tile_width = 0;
   int tile_height = 0;
   
   public TileSet(String filename, int tile_width, int tile_height) {
-    this.tile_sheet_file = filename;
+    println("Sheet file: " + filename);
+    this.tile_sheet = loadImage(filename);
+    println("Sheet width: " + tile_sheet.width + "px");
+    int sprite_count = (int) (tile_sheet.width / tile_width);
+    println("Initializing sprites array to length: " + sprite_count);
+    this.tiles = new PImage[sprite_count];
+    println("Sheet dimensions: " + tile_sheet.width + "x" + tile_sheet.height);
     this.tile_width = tile_width;
     this.tile_height = tile_height;
   }
   
-  public PImage get_tile(int row, int column) {
-    // TODO: Replace placeholder tile image.
-    //       Cut pixel data out of tile sheet file and
-    //       use them to make the appropriate PImage.
-    PImage img = createImage(tile_width, tile_height, RGB);
-    img.loadPixels();
-    for (int i = 10; i < img.pixels.length; i++) {
-      img.pixels[i] = color(0, 90, 102);
+  public PImage get_tile(int tile_row, int tile_column) {
+    if (tile_column != 0)
+      println("Getting tile " + tile_column + "...");
+    int tile_index = tile_column;
+    if (tiles[tile_index] == null) {
+      PImage img = createImage(tile_width, tile_height, RGB);
+      for (int h = 0; h < tile_height; h++) {
+        color[] row_data = pixel_row(tile_column, h);
+        for (int w = 0; w < tile_width; w++) {
+          img.pixels[h * tile_width + w] = row_data[w]; 
+        }
+      }
+      tiles[tile_index] = img;
     }
-    img.updatePixels();
-    return img;
+    return tiles[tile_index];
+  }
+  
+  protected color[] pixel_row(int tile_column, int row) {
+    println("\ntile_column: " + tile_column);
+    println("row: " + row);
+    
+    color[] row_pixels = new color[tile_width];
+    int tile_offset = tile_column * tile_width;
+    
+    for (int i = 0; i < row_pixels.length; i++) {
+      int sheet_x = i + tile_offset;
+      row_pixels[i] = tile_sheet.pixels[tile_sheet.width * row + sheet_x];
+    }
+    
+    return row_pixels;
   }
 }
 
@@ -153,8 +179,14 @@ class MapDecoder {
   }
   
   protected TileSet get_tile_set() {
-    // TODO: replace placeholder
-    return new TileSet("", 16, 16);
+    try {
+      String filename = (String) json_obj.get("tileset_file");
+      return new TileSet(filename, 16, 16);
+    } catch (Exception e) {
+      e.printStackTrace(); 
+    }
+    
+    return null;
   }
   
   protected Grid<Tile> get_grid() {
@@ -432,7 +464,7 @@ void setup() {
   backgroundMusic.loop();
   menuEffect = minim.loadFile("menu.wav");
   
-  yarn = new Yarn(new Coordinate(5,5));
+  yarn = new Yarn(new Coordinate(0,0));
   
   decoder = new MapDecoder();
   json_map = read_file("maps/actual_map.json");
