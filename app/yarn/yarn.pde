@@ -22,6 +22,8 @@ int gameLevel = 0;
 int sWidth = 3;
 int sHeight = 3;
 
+Boolean _keysLocked = false;
+
 
 class Coordinate {
   int x = 0;
@@ -75,7 +77,7 @@ class Tile {
     south_passage = options[5];
     west_passage = options[6];
     
-    println("is_occupiable: "+is_occupiable);
+    // println("is_occupiable: "+is_occupiable);
     // println(tile_set_row+","+tile_set_column);
     // println(north_passage+","+east_passage+","+south_passage+","+west_passage);
   }
@@ -284,39 +286,12 @@ class Yarn {
     // find direction
     int dir = getDirectionIndex(from, to);
     
-    /*
-    int tileX = from.get_tile_x();
-    int tileY = from.get_tile_y();
-    
-    // does the tile the yarn on show that direction as op
-    Tile currentTile = map.grid.data.get(tileX).get(tileY);
-    // println("currentTile: "+currentTile);
-    
-    switch( dir ) {
-      case 0:
-      rtn = currentTile.north_passage;
-      break;
-      case 1:
-      rtn = currentTile.east_passage;
-      break;
-      case 2:
-      rtn = currentTile.south_passage;
-      break;
-      case 3:
-      rtn = currentTile.west_passage;
-      break;
-    }
-    */
-    
     int tileX = to.get_tile_x();
     int tileY = to.get_tile_y();
     
     Tile toTile = map.grid.data.get(tileX).get(tileY);
     
     rtn = toTile.is_occupiable;
-    
-    println(tileX+","+tileY);
-    println("dir: "+dir+", rtn: "+rtn);
     
     return rtn;
   }
@@ -340,38 +315,59 @@ class Yarn {
     return rtn;
   }
   
-  /*
-  public boolean valid_move(Coordinate from, Coordinate to) {
-    if (to.get_global_x() < 0 ||
-        to.get_global_y() < 0 ||
-        to.get_global_x() > width ||
-        to.get_global_y() > height) return false;
-    if (!((Math.abs(from.get_tile_x() - to.get_tile_x()) == 1 &&
-           Math.abs(from.get_tile_y() - to.get_tile_y()) == 0) ||
-          (Math.abs(from.get_tile_x() - to.get_tile_x()) == 0 &&
-           Math.abs(from.get_tile_y() - to.get_tile_y()) == 1))) return false;
-    // TODO: check map's tile openings in `from` and `to`
-    
-    return true;
-  }
-  */
-  
   public void tryMove(int keyCode) {
     Coordinate next_position = neighbor_from_key(keyCode);
     if (valid_move(get_position(), next_position)) {
+      // do move
       if (positions.size() >= 2 && next_position.equals(positions.get(positions.size() - 2))) {
         positions.remove(positions.size() - 1); 
       } else {
         positions.add(next_position);
       }
-      /*
-      println("");
-      println("n: "+valid_move(next_position,new Coordinate(next_position.get_tile_x(),next_position.get_tile_y()-1)));
-      println("e: "+valid_move(next_position,new Coordinate(next_position.get_tile_x()+1,next_position.get_tile_y())));
-      println("s: "+valid_move(next_position,new Coordinate(next_position.get_tile_x(),next_position.get_tile_y()+1)));
-      println("w: "+valid_move(next_position,new Coordinate(next_position.get_tile_x()-1, next_position.get_tile_y())));
-      */
+      // check for safe/end spots
+      checkForSpots();
     }
+  }
+  
+  protected void checkForSpots()
+  {
+    Coordinate currentCord = get_position();
+    // println("currentCord: "+currentCord);
+    
+    int tileX = currentCord.get_tile_x();
+    int tileY = currentCord.get_tile_y();
+    
+    Tile currentTile = map.grid.data.get(tileX).get(tileY);
+    
+    if( currentTile.is_safe_spot ) {
+      doSafeSpot();
+    } else if( currentTile.is_exit ) {
+      doEndLevel();
+    }
+  }
+  
+  protected void doSafeSpot()
+  {
+    println("IT'S SAFE");
+    if( remaining_length == 0 ) {
+      // only safe if it's the last move
+      doSpagettiSuck();
+    }
+  }
+  
+  protected void doEndLevel()
+  {
+    println("IT'S THE END");
+    // allow exit regardless of length
+    doSpagettiSuck();
+  }
+  
+  protected void doSpagettiSuck()
+  {
+    _keysLocked = true;
+    // eat that yarn
+    // loop on self until string is back to max
+    _keysLocked = false;
   }
   
   protected Coordinate neighbor_from_key(int keyCode) {
@@ -449,27 +445,30 @@ void draw() {
 
 void keyPressed() {
   
-  // Title screen
-  if (gameLevel == 0) {
-    gameLevel = 1;
+  if(_keysLocked==false) {
+    
+    // Title screen
+    if (gameLevel == 0) {
+      gameLevel = 1;
+    }
+    
+    else if (gameLevel == 1) {
+      yarn.tryMove(keyCode);
+      menuEffect.play();
+      menuEffect.rewind();
+    }
+    
+    // Win screen
+    else if (gameLevel == 2) {
+      gameLevel = 3;
+    }
+    
+    // Credits screen
+    else if (gameLevel == 3) {
+      gameLevel = 0;
+    }
+    
   }
-  
-  else if (gameLevel == 1) {
-    yarn.tryMove(keyCode);
-    menuEffect.play();
-    menuEffect.rewind();
-  }
-  
-  // Win screen
-  else if (gameLevel == 2) {
-    gameLevel = 3;
-  }
-  
-  // Credits screen
-  else if (gameLevel == 3) {
-    gameLevel = 0;
-  }
- 
 }
 
 void stop()
