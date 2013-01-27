@@ -20,12 +20,17 @@ PImage darkMask;
 int gameLevel = 0;
 boolean lightingEffectsOn = true;
 
+// Set screen width and height
+int screenWidth = 240;
+int screenHeight = 160;
+
 // Screen dimensions for testing (will always be 15x10 once real levels are in)
 int sWidth = 3;
 int sHeight = 3;
 
 
 Boolean _keysLocked = false;
+
 
 class Coordinate {
   int x = 0;
@@ -110,8 +115,6 @@ class TileSet {
   }
   
   public PImage get_tile(int tile_row, int tile_column) {
-    if (tile_column != 0)
-      println("Getting tile " + tile_column + "...");
     int tile_index = tile_column;
     if (tiles[tile_index] == null) {
       PImage img = createImage(tile_width, tile_height, RGB);
@@ -126,10 +129,7 @@ class TileSet {
     return tiles[tile_index];
   }
   
-  protected color[] pixel_row(int tile_column, int row) {
-    println("\ntile_column: " + tile_column);
-    println("row: " + row);
-    
+  protected color[] pixel_row(int tile_column, int row) {    
     color[] row_pixels = new color[tile_width];
     int tile_offset = tile_column * tile_width;
     
@@ -259,6 +259,8 @@ class MapDecoder {
 
 class Yarn {
   int remaining_length = 10;
+  int max_length = 10;
+  
   ArrayList<Coordinate> positions = new ArrayList<Coordinate>();
   
   public Yarn(Coordinate start_position) {
@@ -269,8 +271,10 @@ class Yarn {
     return positions.get(positions.size()-1); 
   }
   
+  // TODO: Add light back later.
   public void draw() {
     drawPath();
+    //drawLightMask();
     drawBall();
   }
   
@@ -280,15 +284,10 @@ class Yarn {
     int y = get_position().get_global_y();
 //    ellipse(x, y, 10, 10);  
       
-      PImage yarnBall;
-      // Not animated yet - ball.png has animated sprites
-      yarnBall = loadImage("ball_0000.png");
-      image(yarnBall, x-8, y-8);
-      
-      if (lightingEffectsOn) {
-        image(darkMask, x-240, y-160);
-      }
-      
+    PImage yarnBall;
+    // Not animated yet - ball.png has animated sprites
+    yarnBall = loadImage("ball_0000.png");
+    image(yarnBall, x-8, y-8);
   }
   
   protected void drawPath() {
@@ -309,6 +308,34 @@ class Yarn {
       
       prev = curr;
     }
+  }
+  
+  protected void drawLightMask() {
+    int x = get_position().get_global_x();
+    int y = get_position().get_global_y();
+    
+    println("Screen dimensions: " + screenWidth + "x" + screenHeight);
+    int brightness_ratio = remaining_length / max_length;
+    /*
+    int resizeWidth = screenWidth * brightness_ratio * 12;
+    int resizeHeight = screenHeight * brightness_ratio * 12;
+    */
+    
+    
+    darkMask = loadImage("mask.png");
+    if (darkMask == null) {
+      println("Dark mask is null!"); 
+    } else {
+      println ("Mask width: " + darkMask.width); 
+    }
+    
+    int resizeWidth = darkMask.width/2 * 10;
+    int resizeHeight = darkMask.height/2 * 10;
+    println ("Resizing to: " + resizeWidth + "x" + resizeHeight);
+    
+    darkMask.resize(resizeWidth,resizeHeight);
+    println("placement: " + (x-resizeWidth/2) + ", " + (y-resizeHeight/2));
+    image(darkMask, x-resizeWidth/2, y-resizeHeight/2);
   }
   
   public boolean valid_move(Coordinate from, Coordinate to)
@@ -446,7 +473,7 @@ void setup() {
   startScreen = loadImage("screen_start.png");
   winScreen = loadImage("screen_win.png");
   creditScreen = loadImage("screen_credits.png");
-  darkMask = loadImage("mask.png");
+
   
   // Audio files setup
   minim = new Minim(this);
