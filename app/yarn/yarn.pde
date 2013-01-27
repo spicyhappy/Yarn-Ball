@@ -23,6 +23,14 @@ int gameLevel = 0;
 int screenWidth = 240;
 int screenHeight = 160;
 
+// Screen dimensions for testing (will always be 15x10 once real levels are in)
+int sWidth = 3;
+int sHeight = 3;
+
+
+Boolean _keysLocked = false;
+
+
 class Coordinate {
   int x = 0;
   int y = 0;
@@ -281,23 +289,52 @@ class Yarn {
     }
   }
   
-  public boolean valid_move(Coordinate from, Coordinate to) {
-    if (to.get_global_x() < 0 ||
-        to.get_global_y() < 0 ||
-        to.get_global_x() > width ||
-        to.get_global_y() > height) return false;
-    if (!((Math.abs(from.get_tile_x() - to.get_tile_x()) == 1 &&
-           Math.abs(from.get_tile_y() - to.get_tile_y()) == 0) ||
-          (Math.abs(from.get_tile_x() - to.get_tile_x()) == 0 &&
-           Math.abs(from.get_tile_y() - to.get_tile_y()) == 1))) return false;
-    // TODO: check map's tile openings in `from` and `to`
+  public boolean valid_move(Coordinate from, Coordinate to)
+  {
+    Boolean rtn = false;
     
-    return true;
+     // break if this would be out of bounds
+    if (to.get_tile_x() < 0 ||
+        to.get_tile_y() < 0 ||
+        to.get_tile_x() > sWidth-1 ||
+        to.get_tile_y() > sHeight-1) return false;
+    
+    // find direction
+    int dir = getDirectionIndex(from, to);
+    
+    int tileX = to.get_tile_x();
+    int tileY = to.get_tile_y();
+    
+    Tile toTile = map.grid.data.get(tileX).get(tileY);
+    
+    rtn = toTile.is_occupiable;
+    
+    return rtn;
+  }
+  
+  // returns an index value that should map to the 'neighbors' array to determine compass direction
+   // clockwise rotation...n,e,s,w
+  public int getDirectionIndex(Coordinate from, Coordinate to)
+  {
+    int rtn = 0;
+    
+    if( from.get_tile_x() - to.get_tile_x() > 0 ) {
+      rtn = 3; // west
+    } else if( from.get_tile_x() - to.get_tile_x() < 0 ) {
+      rtn = 1; // east
+    } else if( from.get_tile_y() - to.get_tile_y() > 0 ) {
+      rtn = 0; // north
+    } else if( from.get_tile_y() - to.get_tile_y() < 0 ) {
+      rtn = 2; // south
+    }
+    
+    return rtn;
   }
   
   public void tryMove(int keyCode) {
     Coordinate next_position = neighbor_from_key(keyCode);
     if (valid_move(get_position(), next_position)) {
+      // do move
       if (positions.size() >= 2 && next_position.equals(positions.get(positions.size() - 2))) {
         positions.remove(positions.size() - 1);
         remaining_length++; 
@@ -305,7 +342,51 @@ class Yarn {
         positions.add(next_position);
         remaining_length--;
       }
+      
+      // check for safe/end spots
+      checkForSpots();
     }
+  }
+  
+  protected void checkForSpots()
+  {
+    Coordinate currentCord = get_position();
+    // println("currentCord: "+currentCord);
+    
+    int tileX = currentCord.get_tile_x();
+    int tileY = currentCord.get_tile_y();
+    
+    Tile currentTile = map.grid.data.get(tileX).get(tileY);
+    
+    if( currentTile.is_safe_spot ) {
+      doSafeSpot();
+    } else if( currentTile.is_exit ) {
+      doEndLevel();
+    }
+  }
+  
+  protected void doSafeSpot()
+  {
+    println("IT'S SAFE");
+    if( remaining_length == 0 ) {
+      // only safe if it's the last move
+      doSpagettiSuck();
+    }
+  }
+  
+  protected void doEndLevel()
+  {
+    println("IT'S THE END");
+    // allow exit regardless of length
+    doSpagettiSuck();
+  }
+  
+  protected void doSpagettiSuck()
+  {
+    _keysLocked = true;
+    // eat that yarn
+    // loop on self until string is back to max
+    _keysLocked = false;
   }
   
   protected Coordinate neighbor_from_key(int keyCode) {
@@ -384,27 +465,30 @@ void draw() {
 
 void keyPressed() {
   
-  // Title screen
-  if (gameLevel == 0) {
-    gameLevel = 1;
+  if(_keysLocked==false) {
+    
+    // Title screen
+    if (gameLevel == 0) {
+      gameLevel = 1;
+    }
+    
+    else if (gameLevel == 1) {
+      yarn.tryMove(keyCode);
+      menuEffect.play();
+      menuEffect.rewind();
+    }
+    
+    // Win screen
+    else if (gameLevel == 2) {
+      gameLevel = 3;
+    }
+    
+    // Credits screen
+    else if (gameLevel == 3) {
+      gameLevel = 0;
+    }
+    
   }
-  
-  else if (gameLevel == 1) {
-    yarn.tryMove(keyCode);
-    menuEffect.play();
-    menuEffect.rewind();
-  }
-  
-  // Win screen
-  else if (gameLevel == 2) {
-    gameLevel = 3;
-  }
-  
-  // Credits screen
-  else if (gameLevel == 3) {
-    gameLevel = 0;
-  }
- 
 }
 
 void stop()
