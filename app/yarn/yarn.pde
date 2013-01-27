@@ -17,7 +17,6 @@ PImage startScreen;
 PImage creditScreen;
 int gameLevel = 0;
 
-
 class Coordinate {
   int x = 0;
   int y = 0;
@@ -234,10 +233,15 @@ class Yarn {
   }
   
   protected void drawBall() {
-    fill(255);
+//    fill(255);
     int x = get_position().get_global_x();
     int y = get_position().get_global_y();
-    ellipse(x, y, 10, 10);  
+//    ellipse(x, y, 10, 10);  
+      
+      PImage yarnBall;
+      // Not animated yet - ball.png has animated sprites
+      yarnBall = loadImage("ball_0000.png");
+      image(yarnBall, x-8, y-8);
   }
   
   protected void drawPath() {
