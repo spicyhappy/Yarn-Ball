@@ -7,10 +7,16 @@ import java.util.*;
 import org.json.*;
 import ddf.minim.*;
 
-// Mininum variables
+// Audio variables
 Minim minim;
 AudioPlayer backgroundMusic;
 AudioPlayer soundEffect;
+
+// Level variables
+PImage startScreen;
+PImage creditScreen;
+int gameLevel = 0;
+
 
 class Coordinate {
   int x = 0;
@@ -308,33 +314,60 @@ String read_file(String filename) {
 
 void setup() {
   size(240, 160);
-  yarn = new Yarn(new Coordinate(5,5));
+  startScreen = loadImage("screen_start.png");
+  creditScreen = loadImage("screen_credits.png");
   
-  decoder = new MapDecoder();
-  json_map = read_file("maps/actual_map.json");
-  map = decoder.read(json_map);
-
   // Audio files setup
   minim = new Minim(this);
   backgroundMusic = minim.loadFile("backgroundMusic.wav");
   backgroundMusic.play();
   backgroundMusic.loop();
   soundEffect = minim.loadFile("effect.wav");
+  
+  yarn = new Yarn(new Coordinate(5,5));
+  
+  decoder = new MapDecoder();
+  json_map = read_file("maps/actual_map.json");
+  map = decoder.read(json_map);
+
 }
 
 void draw() {
   background(0);
   
-  map.draw();
-  yarn.draw();
+  if (gameLevel == 0) {
+    image(startScreen, 0, 0);
+  }
+  
+  if (gameLevel == 1) {
+    map.draw();
+    yarn.draw();
+  }
+  
+  if (gameLevel == 2) {
+    image(creditScreen, 0, 0);
+  }
+  
 }
 
 void keyPressed() {
-  yarn.tryMove(keyCode);
   
-  // Play music effect when something is pressed
-  soundEffect.rewind();
-  soundEffect.play();
+  // Title screen
+  if (gameLevel == 0) {
+    gameLevel = 1;
+  }
+  
+  else if (gameLevel == 1) {
+    yarn.tryMove(keyCode);
+    soundEffect.play();
+    soundEffect.rewind();
+  }
+  
+  // Credits screen
+  else if (gameLevel == 3) {
+    gameLevel = 0;
+  }
+  
 }
 
 void stop()
