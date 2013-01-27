@@ -19,6 +19,10 @@ PImage winScreen;
 PImage darkMask;
 int gameLevel = 0;
 
+// Set screen width and height
+int screenWidth = 240;
+int screenHeight = 160;
+
 class Coordinate {
   int x = 0;
   int y = 0;
@@ -219,6 +223,8 @@ class MapDecoder {
 
 class Yarn {
   int remaining_length = 10;
+  int max_length = 10;
+  
   ArrayList<Coordinate> positions = new ArrayList<Coordinate>();
   
   public Yarn(Coordinate start_position) {
@@ -245,7 +251,13 @@ class Yarn {
       yarnBall = loadImage("ball_0000.png");
       image(yarnBall, x-8, y-8);
       
-       image(darkMask, x-240, y-160);
+      int resizeWidth = screenWidth*(10*remaining_length/max_length+2);
+      int resizeHeight = screenHeight*(10*remaining_length/max_length+2);
+      
+      darkMask = loadImage("mask.png");
+      darkMask.resize(resizeWidth,resizeHeight);
+      image(darkMask, x-resizeWidth/2, y-resizeHeight/2);
+      
       
   }
   
@@ -331,7 +343,6 @@ void setup() {
   startScreen = loadImage("screen_start.png");
   winScreen = loadImage("screen_win.png");
   creditScreen = loadImage("screen_credits.png");
-  darkMask = loadImage("mask.png");
   
   // Audio files setup
   minim = new Minim(this);
