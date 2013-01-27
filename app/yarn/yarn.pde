@@ -16,6 +16,8 @@ AudioPlayer menuEffect;
 PImage startScreen;
 PImage creditScreen;
 PImage winScreen;
+PImage loseScreen;
+PImage teamScreen;
 PImage darkMask;
 int gameLevel = 0;
 boolean lightingEffectsOn = true;
@@ -259,8 +261,8 @@ class MapDecoder {
 }
 
 class Yarn {
-  int remaining_length = 10;
-  int max_length = 10;
+  int max_length = 7;
+  int remaining_length = max_length;
   
   ArrayList<Coordinate> positions = new ArrayList<Coordinate>();
   
@@ -275,7 +277,7 @@ class Yarn {
   // TODO: Add light back later.
   public void draw() {
     drawPath();
-    //drawLightMask();
+    drawLightMask();
     drawBall();
   }
   
@@ -330,13 +332,15 @@ class Yarn {
       println ("Mask width: " + darkMask.width); 
     }
     
-    int resizeWidth = darkMask.width/2 * 10;
-    int resizeHeight = darkMask.height/2 * 10;
-    println ("Resizing to: " + resizeWidth + "x" + resizeHeight);
+    int resizeWidth = darkMask.width;
+    int resizeHeight = darkMask.height;
+    println("Resizing to: " + resizeWidth + "x" + resizeHeight);
     
-    darkMask.resize(resizeWidth,resizeHeight);
-    println("placement: " + (x-resizeWidth/2) + ", " + (y-resizeHeight/2));
-    image(darkMask, x-resizeWidth/2, y-resizeHeight/2);
+    darkMask.resize(resizeWidth, resizeHeight);
+    int _px = x-resizeWidth/2 + TILE_WIDTH/2;
+    int _py = y-resizeHeight/2 + TILE_HEIGHT/2;
+    println("placement: " + _px + ", " + _py);
+    image(darkMask, _px, _py);
   }
   
   public boolean valid_move(Coordinate from, Coordinate to)
@@ -395,7 +399,15 @@ class Yarn {
       
       // check for safe/end spots
       checkForSpots();
+      
+      checkForDeath();
     }
+  }
+  
+  protected void checkForDeath() {
+    if (remaining_length == 0) {
+      gameLevel = 4;
+    } 
   }
   
   protected void checkForSpots()
@@ -406,7 +418,7 @@ class Yarn {
     int tileX = currentCord.get_tile_x();
     int tileY = currentCord.get_tile_y();
     
-    Tile currentTile = map.grid.data.get(tileX).get(tileY);
+    Tile currentTile = map.grid.data.get(tileY).get(tileX);
     
     if( currentTile.is_safe_spot ) {
       doSafeSpot();
@@ -436,10 +448,11 @@ class Yarn {
   
   protected void doSpagettiSuck()
   {
-    _keysLocked = true;
-    // eat that yarn
-    // loop on self until string is back to max
-    _keysLocked = false;
+    println("Engage the suck");
+    while (positions.size() > 1) {
+      positions.remove(0);
+    }
+    remaining_length = max_length;
   }
   
   protected Coordinate neighbor_from_key(int keyCode) {
@@ -462,6 +475,7 @@ Yarn yarn = null;
 MapDecoder decoder;
 String json_map;
 TileMap map;
+Coordinate start_coordinate;
 
 String read_file(String filename) {
   String lines[] = loadStrings(filename);
@@ -477,6 +491,8 @@ void setup() {
   startScreen = loadImage("screen_start.png");
   winScreen = loadImage("screen_win.png");
   creditScreen = loadImage("screen_credits.png");
+  loseScreen = loadImage("screen_lost.png");
+  teamScreen = loadImage("screen_credits.png");
 
   
   // Audio files setup
@@ -486,10 +502,11 @@ void setup() {
   backgroundMusic.loop();
   menuEffect = minim.loadFile("menu.wav");
   
-  yarn = new Yarn(new Coordinate(0,0));
+  start_coordinate = new Coordinate(0,5);
+  yarn = new Yarn(start_coordinate);
   
   decoder = new MapDecoder();
-  json_map = read_file("maps/testThis3.json");
+  json_map = read_file("maps/LevelUp.json");
   map = decoder.read(json_map);
 
 }
@@ -513,6 +530,14 @@ void draw() {
   
   if (gameLevel == 3) {
     image(creditScreen, 0, 0);
+  }
+  
+  if (gameLevel == 4) {
+    image(loseScreen, 0, 0); 
+  }
+  
+  if (gameLevel == 5) {
+    image(teamScreen, 0, 0);
   }
   
 }
@@ -539,9 +564,22 @@ void keyPressed() {
     
     // Credits screen
     else if (gameLevel == 3) {
-      gameLevel = 0;
+      gameLevel = 5;
     }
     
+    // Lose screen
+    else if (gameLevel == 4) {
+      gameLevel = 1;
+      yarn.positions.clear();
+      yarn.positions.add(start_coordinate);
+    }
+    
+    // GGJ Team graphic
+    else if (gameLevel == 5) {
+      gameLevel = 0;
+      yarn.positions.clear();
+      yarn.positions.add(start_coordinate);
+    }
   }
 }
 
