@@ -1,0 +1,91 @@
+html, body, div, img, header, p {
+	font-family: "Helvetica Neue", helvetica, arial, sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background-color: #333;
+	color: #fff;
+	font-size: 12px;
+}
+
+footer {
+	text-align: center;
+}
+
+.floater {
+	width: 15%;
+	position: fixed;
+	right: 0;
+	top: 40px;
+}
+
+#help {
+	font-size: 12px;
+	padding: 15px;
+	color: #333;
+	background-color: #EEE;
+}
+
+#wrapper {
+	padding: 0 20px;
+	padding-top: 40px;
+	width: 700px;
+	margin: auto;
+}
+
+.socialMedia {
+	width: 640px;
+}
+		
+#canvas {
+	margin-bottom: 15px;
+}
+
+.block {
+	padding: 15px;
+	margin-top: 15px;
+	background-color: #EEE;
+	color: black;
+}
+
+.share {
+	padding-bottom: 20px;
+}
+
+.addThis {
+	float: right;
+}
+
+a {
+	color: #29ABE2;
+	text-decoration: none;
+	font-weight: bold;
+}
+
+p {
+	margin-bottom: 7px;
+}
+
+.icon {
+	padding: 0 2px;
+}
+
+@media all and (max-width: 850px) {
+	.floater {
+		left: 0;
+		top: 0;
+		display: block;
+		position: relative;
+		width: 100%;
+	}
+	
+	#wrapper {
+		width: 640px;
+	}
+	
+	p {
+		display: inline;
+	}
+}
