@@ -16,16 +16,19 @@ AudioPlayer menuEffect;
 PImage startScreen;
 PImage creditScreen;
 PImage winScreen;
+PImage loseScreen;
+PImage teamScreen;
 PImage darkMask;
 int gameLevel = 0;
+boolean lightingEffectsOn = true;
 
 // Set screen width and height
 int screenWidth = 240;
 int screenHeight = 160;
 
 // Screen dimensions for testing (will always be 15x10 once real levels are in)
-int sWidth = 3;
-int sHeight = 3;
+int sWidth = 15;
+int sHeight = 10;
 
 
 Boolean _keysLocked = false;
@@ -114,8 +117,6 @@ class TileSet {
   }
   
   public PImage get_tile(int tile_row, int tile_column) {
-    if (tile_column != 0)
-      println("Getting tile " + tile_column + "...");
     int tile_index = tile_column;
     if (tiles[tile_index] == null) {
       PImage img = createImage(tile_width, tile_height, RGB);
@@ -130,10 +131,7 @@ class TileSet {
     return tiles[tile_index];
   }
   
-  protected color[] pixel_row(int tile_column, int row) {
-    println("\ntile_column: " + tile_column);
-    println("row: " + row);
-    
+  protected color[] pixel_row(int tile_column, int row) {    
     color[] row_pixels = new color[tile_width];
     int tile_offset = tile_column * tile_width;
     
@@ -160,7 +158,7 @@ class TileMap {
        for (int column = 0; column < grid.data.get(row).size(); column++) {
          Tile tile = grid.data.get(row).get(column);
          PImage img = tiles.get_tile(tile.tile_set_row, tile.tile_set_column);
-         image(img, row * TILE_HEIGHT, column * TILE_WIDTH);
+         image(img, column * TILE_WIDTH, row * TILE_HEIGHT);
        }
      }
   }
@@ -199,6 +197,7 @@ class MapDecoder {
         JSONArray rows = (JSONArray) obj;
         
         for (int r = 0; r < rows.length(); r++) {
+          println("Reading row " + r);
           obj = rows.get(r);
           
           data.add(new ArrayList<Tile>());
@@ -262,8 +261,8 @@ class MapDecoder {
 }
 
 class Yarn {
-  int remaining_length = 10;
-  int max_length = 10;
+  int max_length = 7;
+  int remaining_length = max_length;
   
   ArrayList<Coordinate> positions = new ArrayList<Coordinate>();
   
@@ -275,30 +274,23 @@ class Yarn {
     return positions.get(positions.size()-1); 
   }
   
+  // TODO: Add light back later.
   public void draw() {
     drawPath();
+    drawLightMask();
     drawBall();
   }
   
   protected void drawBall() {
 //    fill(255);
-    int x = get_position().get_global_x();
-    int y = get_position().get_global_y();
+    int x = get_position().get_global_x() + TILE_WIDTH/2;
+    int y = get_position().get_global_y() + TILE_HEIGHT/2;
 //    ellipse(x, y, 10, 10);  
       
-      PImage yarnBall;
-      // Not animated yet - ball.png has animated sprites
-      yarnBall = loadImage("ball_0000.png");
-      image(yarnBall, x-8, y-8);
-      
-      int resizeWidth = screenWidth*(10*remaining_length/max_length+2);
-      int resizeHeight = screenHeight*(10*remaining_length/max_length+2);
-      
-      darkMask = loadImage("mask.png");
-      darkMask.resize(resizeWidth,resizeHeight);
-      image(darkMask, x-resizeWidth/2, y-resizeHeight/2);
-      
-      
+    PImage yarnBall;
+    // Not animated yet - ball.png has animated sprites
+    yarnBall = loadImage("ball_0000.png");
+    image(yarnBall, x-TILE_WIDTH/2, y-TILE_HEIGHT/2);
   }
   
   protected void drawPath() {
@@ -312,13 +304,43 @@ class Yarn {
       
       stroke(255,186,0);
       strokeWeight(2);
-      line(prev.get_global_x(),
-           prev.get_global_y(),
-           curr.get_global_x(),
-           curr.get_global_y());
+      line(prev.get_global_x() + TILE_WIDTH/2,
+           prev.get_global_y() + TILE_HEIGHT/2,
+           curr.get_global_x() + TILE_WIDTH/2,
+           curr.get_global_y() + TILE_HEIGHT/2);
       
       prev = curr;
     }
+  }
+  
+  protected void drawLightMask() {
+    int x = get_position().get_global_x();
+    int y = get_position().get_global_y();
+    
+    println("Screen dimensions: " + screenWidth + "x" + screenHeight);
+    int brightness_ratio = remaining_length / max_length;
+    /*
+    int resizeWidth = screenWidth * brightness_ratio * 12;
+    int resizeHeight = screenHeight * brightness_ratio * 12;
+    */
+    
+    
+    darkMask = loadImage("mask.png");
+    if (darkMask == null) {
+      println("Dark mask is null!"); 
+    } else {
+      println ("Mask width: " + darkMask.width); 
+    }
+    
+    int resizeWidth = darkMask.width;
+    int resizeHeight = darkMask.height;
+    println("Resizing to: " + resizeWidth + "x" + resizeHeight);
+    
+    darkMask.resize(resizeWidth, resizeHeight);
+    int _px = x-resizeWidth/2 + TILE_WIDTH/2;
+    int _py = y-resizeHeight/2 + TILE_HEIGHT/2;
+    println("placement: " + _px + ", " + _py);
+    image(darkMask, _px, _py);
   }
   
   public boolean valid_move(Coordinate from, Coordinate to)
@@ -337,7 +359,7 @@ class Yarn {
     int tileX = to.get_tile_x();
     int tileY = to.get_tile_y();
     
-    Tile toTile = map.grid.data.get(tileX).get(tileY);
+    Tile toTile = map.grid.data.get(tileY).get(tileX);
     
     rtn = toTile.is_occupiable;
     
@@ -377,7 +399,15 @@ class Yarn {
       
       // check for safe/end spots
       checkForSpots();
+      
+      checkForDeath();
     }
+  }
+  
+  protected void checkForDeath() {
+    if (remaining_length == 0) {
+      gameLevel = 4;
+    } 
   }
   
   protected void checkForSpots()
@@ -388,7 +418,7 @@ class Yarn {
     int tileX = currentCord.get_tile_x();
     int tileY = currentCord.get_tile_y();
     
-    Tile currentTile = map.grid.data.get(tileX).get(tileY);
+    Tile currentTile = map.grid.data.get(tileY).get(tileX);
     
     if( currentTile.is_safe_spot ) {
       doSafeSpot();
@@ -409,16 +439,20 @@ class Yarn {
   protected void doEndLevel()
   {
     println("IT'S THE END");
+    
+    gameLevel = 2;
+    
     // allow exit regardless of length
     doSpagettiSuck();
   }
   
   protected void doSpagettiSuck()
   {
-    _keysLocked = true;
-    // eat that yarn
-    // loop on self until string is back to max
-    _keysLocked = false;
+    println("Engage the suck");
+    while (positions.size() > 1) {
+      positions.remove(0);
+    }
+    remaining_length = max_length;
   }
   
   protected Coordinate neighbor_from_key(int keyCode) {
@@ -441,6 +475,7 @@ Yarn yarn = null;
 MapDecoder decoder;
 String json_map;
 TileMap map;
+Coordinate start_coordinate;
 
 String read_file(String filename) {
   String lines[] = loadStrings(filename);
@@ -456,6 +491,9 @@ void setup() {
   startScreen = loadImage("screen_start.png");
   winScreen = loadImage("screen_win.png");
   creditScreen = loadImage("screen_credits.png");
+  loseScreen = loadImage("screen_lost.png");
+  teamScreen = loadImage("screen_credits.png");
+
   
   // Audio files setup
   minim = new Minim(this);
@@ -464,10 +502,11 @@ void setup() {
   backgroundMusic.loop();
   menuEffect = minim.loadFile("menu.wav");
   
-  yarn = new Yarn(new Coordinate(0,0));
+  start_coordinate = new Coordinate(0,5);
+  yarn = new Yarn(start_coordinate);
   
   decoder = new MapDecoder();
-  json_map = read_file("maps/actual_map.json");
+  json_map = read_file("maps/LevelUp.json");
   map = decoder.read(json_map);
 
 }
@@ -491,6 +530,14 @@ void draw() {
   
   if (gameLevel == 3) {
     image(creditScreen, 0, 0);
+  }
+  
+  if (gameLevel == 4) {
+    image(loseScreen, 0, 0); 
+  }
+  
+  if (gameLevel == 5) {
+    image(teamScreen, 0, 0);
   }
   
 }
@@ -517,9 +564,22 @@ void keyPressed() {
     
     // Credits screen
     else if (gameLevel == 3) {
-      gameLevel = 0;
+      gameLevel = 5;
     }
     
+    // Lose screen
+    else if (gameLevel == 4) {
+      gameLevel = 1;
+      yarn.positions.clear();
+      yarn.positions.add(start_coordinate);
+    }
+    
+    // GGJ Team graphic
+    else if (gameLevel == 5) {
+      gameLevel = 0;
+      yarn.positions.clear();
+      yarn.positions.add(start_coordinate);
+    }
   }
 }
 
