@@ -16,12 +16,8 @@ AudioPlayer menuEffect;
 PImage startScreen;
 PImage creditScreen;
 PImage winScreen;
+PImage darkMask;
 int gameLevel = 0;
-
-// Screen dimensions for testing (will always be 15x10 once real levels are in)
-int sWidth = 3;
-int sHeight = 3;
-
 
 class Coordinate {
   int x = 0;
@@ -74,10 +70,6 @@ class Tile {
     east_passage = options[4];
     south_passage = options[5];
     west_passage = options[6];
-    
-    println("is_occupiable: "+is_occupiable);
-    // println(tile_set_row+","+tile_set_column);
-    // println(north_passage+","+east_passage+","+south_passage+","+west_passage);
   }
 }
 
@@ -238,8 +230,8 @@ class Yarn {
   }
   
   public void draw() {
-    drawBall();
     drawPath();
+    drawBall();
   }
   
   protected void drawBall() {
@@ -252,16 +244,22 @@ class Yarn {
       // Not animated yet - ball.png has animated sprites
       yarnBall = loadImage("ball_0000.png");
       image(yarnBall, x-8, y-8);
+      
+       image(darkMask, x-240, y-160);
+      
   }
   
   protected void drawPath() {
+    
+    
     if (positions.size() <= 1) return;
     
     Coordinate prev = positions.get(0);
     for (int i = 1; i < positions.size(); i++) {
       Coordinate curr = positions.get(i);
       
-      stroke(255);
+      stroke(255,186,0);
+      strokeWeight(2);
       line(prev.get_global_x(),
            prev.get_global_y(),
            curr.get_global_x(),
@@ -271,76 +269,6 @@ class Yarn {
     }
   }
   
-  public boolean valid_move(Coordinate from, Coordinate to)
-  {
-    Boolean rtn = false;
-    
-     // break if this would be out of bounds
-    if (to.get_tile_x() < 0 ||
-        to.get_tile_y() < 0 ||
-        to.get_tile_x() > sWidth-1 ||
-        to.get_tile_y() > sHeight-1) return false;
-    
-    // find direction
-    int dir = getDirectionIndex(from, to);
-    
-    /*
-    int tileX = from.get_tile_x();
-    int tileY = from.get_tile_y();
-    
-    // does the tile the yarn on show that direction as op
-    Tile currentTile = map.grid.data.get(tileX).get(tileY);
-    // println("currentTile: "+currentTile);
-    
-    switch( dir ) {
-      case 0:
-      rtn = currentTile.north_passage;
-      break;
-      case 1:
-      rtn = currentTile.east_passage;
-      break;
-      case 2:
-      rtn = currentTile.south_passage;
-      break;
-      case 3:
-      rtn = currentTile.west_passage;
-      break;
-    }
-    */
-    
-    int tileX = to.get_tile_x();
-    int tileY = to.get_tile_y();
-    
-    Tile toTile = map.grid.data.get(tileX).get(tileY);
-    
-    rtn = toTile.is_occupiable;
-    
-    println(tileX+","+tileY);
-    println("dir: "+dir+", rtn: "+rtn);
-    
-    return rtn;
-  }
-  
-  // returns an index value that should map to the 'neighbors' array to determine compass direction
-   // clockwise rotation...n,e,s,w
-  public int getDirectionIndex(Coordinate from, Coordinate to)
-  {
-    int rtn = 0;
-    
-    if( from.get_tile_x() - to.get_tile_x() > 0 ) {
-      rtn = 3; // west
-    } else if( from.get_tile_x() - to.get_tile_x() < 0 ) {
-      rtn = 1; // east
-    } else if( from.get_tile_y() - to.get_tile_y() > 0 ) {
-      rtn = 0; // north
-    } else if( from.get_tile_y() - to.get_tile_y() < 0 ) {
-      rtn = 2; // south
-    }
-    
-    return rtn;
-  }
-  
-  /*
   public boolean valid_move(Coordinate from, Coordinate to) {
     if (to.get_global_x() < 0 ||
         to.get_global_y() < 0 ||
@@ -354,23 +282,17 @@ class Yarn {
     
     return true;
   }
-  */
   
   public void tryMove(int keyCode) {
     Coordinate next_position = neighbor_from_key(keyCode);
     if (valid_move(get_position(), next_position)) {
       if (positions.size() >= 2 && next_position.equals(positions.get(positions.size() - 2))) {
-        positions.remove(positions.size() - 1); 
-      } else {
+        positions.remove(positions.size() - 1);
+        remaining_length++; 
+      } else if (remaining_length > 0) {
         positions.add(next_position);
+        remaining_length--;
       }
-      /*
-      println("");
-      println("n: "+valid_move(next_position,new Coordinate(next_position.get_tile_x(),next_position.get_tile_y()-1)));
-      println("e: "+valid_move(next_position,new Coordinate(next_position.get_tile_x()+1,next_position.get_tile_y())));
-      println("s: "+valid_move(next_position,new Coordinate(next_position.get_tile_x(),next_position.get_tile_y()+1)));
-      println("w: "+valid_move(next_position,new Coordinate(next_position.get_tile_x()-1, next_position.get_tile_y())));
-      */
     }
   }
   
@@ -409,6 +331,7 @@ void setup() {
   startScreen = loadImage("screen_start.png");
   winScreen = loadImage("screen_win.png");
   creditScreen = loadImage("screen_credits.png");
+  darkMask = loadImage("mask.png");
   
   // Audio files setup
   minim = new Minim(this);
@@ -417,7 +340,7 @@ void setup() {
   backgroundMusic.loop();
   menuEffect = minim.loadFile("menu.wav");
   
-  yarn = new Yarn(new Coordinate(0,0));
+  yarn = new Yarn(new Coordinate(5,5));
   
   decoder = new MapDecoder();
   json_map = read_file("maps/actual_map.json");
@@ -435,6 +358,7 @@ void draw() {
   if (gameLevel == 1) {
     map.draw();
     yarn.draw();
+    
   }
   
   if (gameLevel == 2) {
