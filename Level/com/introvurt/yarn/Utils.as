@@ -1,0 +1,1 @@
+﻿package com.introvurt.yarn {		public class Utils {		// ALL STATIC		// returns an integer, 0 - max-1		public static function getRandomIndex(max:int):int {			var rnd:int = Math.floor(Math.random()*max);			return rnd;		}				public static function randomRange(min:Number, max:Number):Number {			return Math.round(Math.random() * (max -  min)) + min;		}	}}
